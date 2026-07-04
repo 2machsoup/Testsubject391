@@ -36,6 +36,22 @@ wow-logs analyze <report_code> --fight <fight_id> --player <name> \
   --top-report <other_report_code> --top-fight <other_fight_id> --top-player <other_name>
 ```
 
+## Web GUI
+
+A local Flask front end is available if you'd rather fill in a form than remember CLI flags.
+
+```
+pip install -e ".[dev,web]"
+wow-logs serve
+```
+
+Then open http://127.0.0.1:5000 in a browser, fill in the report code/fight/player
+(and optionally an explicit top-parse override), and submit. Findings are shown as
+the same categorized, severity-colored list as the CLI report.
+
+Use `--host`/`--port` to change the bind address, and `--debug` for Flask's
+auto-reload during development.
+
 ## What it checks
 
 - **Performance** — DPS/HPS percentile and the raw gap vs the top parse's amount.

@@ -62,5 +62,22 @@ def analyze(
     click.echo(render_report(result, use_color=not no_color))
 
 
+@main.command()
+@click.option("--host", default="127.0.0.1", show_default=True)
+@click.option("--port", default=5000, show_default=True, type=int)
+@click.option("--debug", is_flag=True, help="Enable Flask debug/reload mode.")
+def serve(host: str, port: int, debug: bool) -> None:
+    """Run a local web GUI for the analyzer (requires the 'web' extra: pip install -e '.[web]')."""
+    try:
+        from .webapp import create_app
+    except ImportError:
+        click.secho(
+            "Flask is not installed. Run: pip install -e '.[web]'", fg="red", err=True
+        )
+        sys.exit(1)
+
+    create_app().run(host=host, port=port, debug=debug)
+
+
 if __name__ == "__main__":
     main()

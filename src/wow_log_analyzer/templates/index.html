@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}WoW Log Analyzer{% endblock %}
+{% block content %}
+  <h1>WoW Log Analyzer</h1>
+  <p class="subtitle">Compare a Warcraft Logs report against the top parse for the same fight.</p>
+
+  {% if error %}
+    <div class="error">{{ error }}</div>
+  {% endif %}
+
+  <form method="post" action="/analyze" class="panel">
+    <label for="report_code">Report code</label>
+    <input id="report_code" name="report_code" type="text" placeholder="e.g. AbCdEfGh123456"
+           value="{{ values.get('report_code', '') }}" required>
+
+    <label for="fight_id">Fight ID</label>
+    <input id="fight_id" name="fight_id" type="number" min="1"
+           value="{{ values.get('fight_id', '') }}" required>
+
+    <label for="player_name">Player name</label>
+    <input id="player_name" name="player_name" type="text" placeholder="e.g. Alice"
+           value="{{ values.get('player_name', '') }}" required>
+
+    <label for="metric">Metric</label>
+    <select id="metric" name="metric">
+      <option value="dps" {% if values.get('metric', 'dps') == 'dps' %}selected{% endif %}>DPS</option>
+      <option value="hps" {% if values.get('metric') == 'hps' %}selected{% endif %}>HPS</option>
+    </select>
+
+    <fieldset>
+      <legend>Optional: compare against a specific log instead of the auto-detected top parse</legend>
+      <label for="top_report_code">Top-parse report code</label>
+      <input id="top_report_code" name="top_report_code" type="text"
+             value="{{ values.get('top_report_code', '') }}">
+
+      <label for="top_fight_id">Top-parse fight ID</label>
+      <input id="top_fight_id" name="top_fight_id" type="number" min="1"
+             value="{{ values.get('top_fight_id', '') }}">
+
+      <label for="top_player_name">Top-parse player name</label>
+      <input id="top_player_name" name="top_player_name" type="text"
+             value="{{ values.get('top_player_name', '') }}">
+    </fieldset>
+
+    <button type="submit">Analyze</button>
+  </form>
+{% endblock %}

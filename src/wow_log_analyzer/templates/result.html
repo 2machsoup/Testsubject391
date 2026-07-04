@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Analysis: {{ result.target.context.player_name }} on {{ result.target.context.fight.name }}{% endblock %}
+{% block content %}
+  <h1>{{ result.target.context.player_name }} on {{ result.target.context.fight.name }}</h1>
+  <p class="subtitle">vs top parse ({{ result.top.context.player_name }})</p>
+
+  <div class="panel">
+    {% if not result.findings %}
+      <p>No notable issues found -- this parse looks close to the top parse.</p>
+    {% else %}
+      {% for category, findings in grouped_findings %}
+        <div class="category-header">{{ category.replace('-', ' ') | title }}</div>
+        {% for finding in findings %}
+          <div class="finding {{ finding.severity.value }}">
+            <span class="badge {{ finding.severity.value }}">{{ finding.severity.value }}</span>
+            {{ finding.message }}
+            {% if finding.detail %}
+              <div class="detail">{{ finding.detail }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% endfor %}
+    {% endif %}
+  </div>
+
+  <p><a href="/">&larr; Run another analysis</a></p>
+{% endblock %}
