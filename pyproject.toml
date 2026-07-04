@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wow-log-analyzer"
+version = "0.1.0"
+description = "Fetch a Warcraft Logs report, compare it against top parses for the same encounter, and report likely issues."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "requests>=2.31",
+    "click>=8.1",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "responses>=0.24",
+]
+
+[project.scripts]
+wow-logs = "wow_log_analyzer.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+wow_log_analyzer = ["data/*.json"]

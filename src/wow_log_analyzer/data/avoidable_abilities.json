@@ -1,0 +1,7 @@
+{
+  "_comment": "Optional per-encounter allowlist of ability game IDs known to be avoidable raid mechanics. Keys are encounter IDs (as strings) from the WCL fight data; values are lists of abilityGameID. When an encounter has no entry, avoidable-damage analysis falls back to a heuristic: any ability that hit the target player noticeably more often than it hit the top parse's player.",
+  "example": {
+    "_encounterID": 0,
+    "_abilityGameIDs": []
+  }
+}
