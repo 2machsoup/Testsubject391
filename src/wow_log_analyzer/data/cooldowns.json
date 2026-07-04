@@ -1,0 +1,9 @@
+{
+  "_comment": "Optional per-spec list of major cooldowns to track usage-count for. Keys are '<ClassName>_<SpecName>' matching the class/spec names WCL returns in rankings (e.g. 'Mage_Fire'). Each entry needs 'name' and 'ability_id' (the WCL abilityGameID, found via a report's cast events or Wowhead). Populate this for the specs you care about -- it ships empty because cooldown ability IDs change across expansions/patches and shipping guessed IDs would silently produce wrong findings.",
+  "example": {
+    "_spec_key": "Mage_Fire",
+    "_entries": [
+      {"name": "Combustion", "ability_id": 0}
+    ]
+  }
+}
