@@ -1,0 +1,49 @@
+.transactions-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.transactions-table th {
+  text-align: left;
+  color: var(--text-muted);
+  font-weight: 500;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--gridline);
+}
+
+.transactions-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--gridline);
+  color: var(--text-primary);
+}
+
+.transactions-table td.numeric,
+.transactions-table th.numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.transactions-table__badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--dot-color) 18%, transparent);
+}
+
+.transactions-table__dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--dot-color);
+  margin-right: 6px;
+}
+
+.transactions-table__empty {
+  color: var(--text-muted);
+  padding: 24px 12px;
+  text-align: center;
+}

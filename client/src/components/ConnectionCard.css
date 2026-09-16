@@ -1,0 +1,75 @@
+.connection-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.connection-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.connection-card__title {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.connection-card__status {
+  font-size: 12px;
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+
+.connection-card__status--connected {
+  color: var(--status-good);
+  background: color-mix(in srgb, var(--status-good) 15%, transparent);
+}
+
+.connection-card__status--disconnected {
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--text-muted) 15%, transparent);
+}
+
+.connection-card__detail {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin: 0;
+}
+
+.connection-card__actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.connection-card__button {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--page-plane);
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.connection-card__button--primary {
+  background: var(--series-square);
+  border-color: var(--series-square);
+  color: white;
+}
+
+.connection-card__input {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--page-plane);
+  color: var(--text-primary);
+  font-size: 13px;
+  flex: 1;
+}

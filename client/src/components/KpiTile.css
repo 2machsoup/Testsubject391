@@ -1,0 +1,28 @@
+.kpi-tile {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  min-width: 160px;
+  flex: 1;
+}
+
+.kpi-tile__label {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin: 0 0 6px;
+}
+
+.kpi-tile__value {
+  color: var(--text-primary);
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0;
+  font-variant-numeric: proportional-nums;
+}
+
+.kpi-tile__sub {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin: 4px 0 0;
+}
