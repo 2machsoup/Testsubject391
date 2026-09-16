@@ -2,8 +2,9 @@ services:
   - type: web
     name: sales-dashboard-api
     runtime: docker
-    dockerfilePath: ./server/Dockerfile
-    dockerContext: ./server
+    rootDir: server
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     plan: starter # persistent disks require Starter or above, not the free plan
     healthCheckPath: /api/health
     disk:
