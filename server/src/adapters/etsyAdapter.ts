@@ -1,6 +1,6 @@
 import axios from "axios";
 import { config } from "../config";
-import { ConnectionStatus, DateRange, SaleRecord, SalesAdapter } from "./types";
+import { ConnectionStatus, DateRange, SaleLineItem, SaleRecord, SalesAdapter } from "./types";
 import * as etsyAuth from "../auth/etsyAuth";
 
 const API_BASE = "https://api.etsy.com/v3/application";
@@ -11,6 +11,13 @@ interface EtsyMoney {
   currency_code: string;
 }
 
+interface EtsyTransaction {
+  title: string;
+  quantity: number;
+  sku: string | null;
+  price: EtsyMoney;
+}
+
 interface EtsyReceipt {
   receipt_id: number;
   created_timestamp: number;
@@ -18,6 +25,7 @@ interface EtsyReceipt {
   subtotal: EtsyMoney;
   name: string;
   was_paid: boolean;
+  transactions?: EtsyTransaction[];
 }
 
 interface EtsyShop {
@@ -90,12 +98,24 @@ export const etsyAdapter: SalesAdapter = {
           limit,
           offset,
           was_paid: true,
+          includes: "Transactions",
         },
       });
 
       const receipts = data.results as EtsyReceipt[];
       for (const receipt of receipts) {
         const gross = moneyToMinorUnits(receipt.grandtotal);
+        const lineItems: SaleLineItem[] | undefined = receipt.transactions?.map((txn) => {
+          const unitPriceAmount = moneyToMinorUnits(txn.price);
+          return {
+            sku: txn.sku || undefined,
+            title: txn.title,
+            quantity: txn.quantity,
+            unitPriceAmount,
+            lineTotalAmount: unitPriceAmount * txn.quantity,
+          };
+        });
+
         results.push({
           id: `etsy-${receipt.receipt_id}`,
           platform: "etsy",
@@ -107,9 +127,10 @@ export const etsyAdapter: SalesAdapter = {
           // ledger/finances API would be needed for an exact figure.
           fees: 0,
           netAmount: gross,
-          itemCount: 1,
+          itemCount: lineItems?.reduce((sum, li) => sum + li.quantity, 0) ?? 1,
           customerName: receipt.name,
           channel: "Etsy",
+          lineItems,
           raw: receipt,
         });
       }

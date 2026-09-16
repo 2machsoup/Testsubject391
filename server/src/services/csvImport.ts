@@ -1,6 +1,7 @@
 import { parse } from "csv-parse/sync";
 import crypto from "node:crypto";
 import { db } from "../db";
+import { SaleLineItem } from "../adapters/types";
 
 /**
  * Local POS systems vary widely (Square-alikes, QuickBooks POS, custom
@@ -8,6 +9,10 @@ import { db } from "../db";
  * than an API. This importer accepts a CSV plus a column mapping so the
  * dashboard can absorb whatever export format the business's program
  * produces, without hard-coding one vendor's schema.
+ *
+ * Most POS CSV exports are one row per line item (not per order), so sku/
+ * quantity/unitPrice map onto a single-item lineItems array per row when
+ * provided, enabling SKU-level metrics for imported data.
  */
 export interface ColumnMapping {
   date: string;
@@ -17,6 +22,10 @@ export interface ColumnMapping {
   itemCount?: string;
   customerName?: string;
   currency?: string;
+  sku?: string;
+  itemTitle?: string;
+  quantity?: string;
+  unitPrice?: string;
 }
 
 export const DEFAULT_COLUMN_MAPPING: ColumnMapping = {
@@ -27,6 +36,10 @@ export const DEFAULT_COLUMN_MAPPING: ColumnMapping = {
   itemCount: "Items",
   customerName: "Customer",
   currency: "Currency",
+  sku: "SKU",
+  itemTitle: "Item",
+  quantity: "Quantity",
+  unitPrice: "Unit Price",
 };
 
 function toMinorUnits(value: string | undefined): number {
@@ -51,8 +64,8 @@ export function importCsv(fileBuffer: Buffer, mapping: ColumnMapping): ImportRes
 
   const insert = db.prepare(`
     INSERT OR REPLACE INTO local_pos_sales
-      (id, occurred_at, order_number, currency, gross_amount, fees, net_amount, item_count, customer_name, channel, imported_at)
-    VALUES (@id, @occurredAt, @orderNumber, @currency, @grossAmount, @fees, @netAmount, @itemCount, @customerName, @channel, @importedAt)
+      (id, occurred_at, order_number, currency, gross_amount, fees, net_amount, item_count, customer_name, channel, imported_at, line_items_json)
+    VALUES (@id, @occurredAt, @orderNumber, @currency, @grossAmount, @fees, @netAmount, @itemCount, @customerName, @channel, @importedAt, @lineItemsJson)
   `);
 
   let imported = 0;
@@ -77,6 +90,24 @@ export function importCsv(fileBuffer: Buffer, mapping: ColumnMapping): ImportRes
       const fees = mapping.fees ? toMinorUnits(row[mapping.fees]) : 0;
       const orderNumber = mapping.orderNumber ? row[mapping.orderNumber] : undefined;
 
+      const rawSku = mapping.sku ? row[mapping.sku] : undefined;
+      let lineItems: SaleLineItem[] | undefined;
+      let itemCount = mapping.itemCount ? parseInt(row[mapping.itemCount], 10) || 1 : 1;
+      if (rawSku) {
+        const quantity = mapping.quantity ? parseInt(row[mapping.quantity], 10) || 1 : 1;
+        const unitPriceAmount = mapping.unitPrice ? toMinorUnits(row[mapping.unitPrice]) : gross / quantity;
+        lineItems = [
+          {
+            sku: rawSku,
+            title: (mapping.itemTitle ? row[mapping.itemTitle] : undefined) || rawSku,
+            quantity,
+            unitPriceAmount,
+            lineTotalAmount: unitPriceAmount * quantity,
+          },
+        ];
+        itemCount = quantity;
+      }
+
       insert.run({
         id: `local-${crypto.randomUUID()}`,
         occurredAt: occurredAt.toISOString(),
@@ -85,10 +116,11 @@ export function importCsv(fileBuffer: Buffer, mapping: ColumnMapping): ImportRes
         grossAmount: gross,
         fees,
         netAmount: gross - fees,
-        itemCount: mapping.itemCount ? parseInt(row[mapping.itemCount], 10) || 1 : 1,
+        itemCount,
         customerName: mapping.customerName ? row[mapping.customerName] || null : null,
         channel: "Local POS",
         importedAt: Date.now(),
+        lineItemsJson: lineItems ? JSON.stringify(lineItems) : null,
       });
       imported++;
     }

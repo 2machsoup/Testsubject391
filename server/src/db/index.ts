@@ -41,3 +41,8 @@ db.exec(`
     imported_at INTEGER NOT NULL
   );
 `);
+
+const localPosColumns = db.prepare(`PRAGMA table_info(local_pos_sales)`).all() as { name: string }[];
+if (!localPosColumns.some((col) => col.name === "line_items_json")) {
+  db.exec(`ALTER TABLE local_pos_sales ADD COLUMN line_items_json TEXT`);
+}

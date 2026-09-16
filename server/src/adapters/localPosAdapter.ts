@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { ConnectionStatus, DateRange, SaleRecord, SalesAdapter } from "./types";
+import { ConnectionStatus, DateRange, SaleLineItem, SaleRecord, SalesAdapter } from "./types";
 
 interface LocalSaleRow {
   id: string;
@@ -12,6 +12,7 @@ interface LocalSaleRow {
   item_count: number;
   customer_name: string | null;
   channel: string | null;
+  line_items_json: string | null;
 }
 
 function countImportedRows(): number {
@@ -47,7 +48,7 @@ export const localPosAdapter: SalesAdapter = {
   async fetchSales(range: DateRange): Promise<SaleRecord[]> {
     const rows = db
       .prepare(
-        `SELECT id, occurred_at, order_number, currency, gross_amount, fees, net_amount, item_count, customer_name, channel
+        `SELECT id, occurred_at, order_number, currency, gross_amount, fees, net_amount, item_count, customer_name, channel, line_items_json
          FROM local_pos_sales
          WHERE occurred_at >= ? AND occurred_at <= ?
          ORDER BY occurred_at ASC`
@@ -66,6 +67,7 @@ export const localPosAdapter: SalesAdapter = {
       itemCount: row.item_count,
       customerName: row.customer_name ?? undefined,
       channel: row.channel ?? "Local POS",
+      lineItems: row.line_items_json ? (JSON.parse(row.line_items_json) as SaleLineItem[]) : undefined,
     }));
   },
 

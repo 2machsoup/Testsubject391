@@ -1,5 +1,13 @@
 export type PlatformId = "etsy" | "square" | "shopify" | "localPos";
 
+export interface SaleLineItem {
+  sku?: string;
+  title: string;
+  quantity: number;
+  unitPriceAmount: number;
+  lineTotalAmount: number;
+}
+
 export interface SaleRecord {
   id: string;
   platform: PlatformId;
@@ -12,6 +20,29 @@ export interface SaleRecord {
   itemCount: number;
   customerName?: string;
   channel?: string;
+  lineItems?: SaleLineItem[];
+}
+
+export interface SkuMetric {
+  key: string;
+  sku?: string;
+  title: string;
+  platforms: PlatformId[];
+  unitsSold: number;
+  revenue: number;
+  avgUnitPrice: number;
+  velocityPerDay: number;
+  revenueShare: number;
+  orderCount: number;
+  firstSoldAt: string;
+  lastSoldAt: string;
+}
+
+export interface SkuMetricsResponse {
+  range: { start: string; end: string };
+  rangeDays: number;
+  totalRevenue: number;
+  skus: SkuMetric[];
 }
 
 export interface PlatformSummary {

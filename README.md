@@ -16,10 +16,20 @@ local business's own sales program (via CSV import) into one view.
 
 | Source | Integration | Notes |
 |---|---|---|
-| Etsy | OAuth2 (PKCE), Open API v3 | Reads shop receipts. Etsy doesn't expose per-order fees via this endpoint, so `fees` is reported as 0 for Etsy sales. |
-| Square | OAuth2, Payments API | Reads payments including Square's own processing fees, so net amounts are exact. |
-| Shopify | Per-store OAuth2 (offline token), Admin REST API | You enter your `*.myshopify.com` domain to connect. Fees from Shopify Payments require a separate Payouts API integration and are reported as 0 here. |
-| Local POS | CSV import | Most local/in-store POS software only offers a CSV/Excel export rather than an API, so `server/src/adapters/localPosAdapter.ts` reads from sales imported via `POST /api/local-pos/import`. It implements the same `SalesAdapter` interface as the other three, so it can be swapped for a real API or direct database adapter later without touching the rest of the app — see "Swapping in a real Local POS integration" below. |
+| Etsy | OAuth2 (PKCE), Open API v3 | Reads shop receipts with `includes=Transactions` for line-item/SKU detail. Etsy doesn't expose per-order fees via this endpoint, so `fees` is reported as 0 for Etsy sales. |
+| Square | OAuth2, Payments API + Orders API + Catalog API | Payments give exact fees; a batch Orders lookup gives line items; a batch Catalog lookup resolves `catalog_object_id` to SKU (falls back to item name when a line item has no catalog SKU, e.g. a custom/ad-hoc item). |
+| Shopify | Per-store OAuth2 (offline token), Admin REST API | You enter your `*.myshopify.com` domain to connect. Order `line_items` already include SKU/quantity/price. Fees from Shopify Payments require a separate Payouts API integration and are reported as 0 here. |
+| Local POS | CSV import | Most local/in-store POS software only offers a CSV/Excel export rather than an API, so `server/src/adapters/localPosAdapter.ts` reads from sales imported via `POST /api/local-pos/import`. It implements the same `SalesAdapter` interface as the other three, so it can be swapped for a real API or direct database adapter later without touching the rest of the app — see "Swapping in a real Local POS integration" below. SKU-level detail is only captured when the CSV maps a SKU column (see below). |
+
+## SKU-level metrics
+
+The **SKU Performance** page (`/skus`) aggregates every platform's line-item
+data (where available — see table above) into per-SKU revenue, units sold,
+average selling price, order count, and **velocity** (units sold per day
+over the selected date range). Items without a SKU from their source
+platform are grouped by `platform:title` instead, so they still show up
+rather than being silently dropped. Backed by `GET /api/skus?start=&end=`
+(`server/src/services/skuAggregator.ts`).
 
 ## Setup
 
@@ -76,9 +86,18 @@ default the importer expects these column headers:
 | `Order` | Order/receipt number |
 | `Total` | Gross sale amount (e.g. `125.50`) |
 | `Fees` | Processing/platform fees, if known |
-| `Items` | Item count |
+| `Items` | Item count (ignored if `Quantity` below is present) |
 | `Customer` | Customer name |
 | `Currency` | ISO currency code (defaults to `USD` if omitted) |
+| `SKU` | Item SKU — optional, but required for that row to show up on the SKU Performance page |
+| `Item` | Item/product name (falls back to the SKU if omitted) |
+| `Quantity` | Units sold in that row |
+| `Unit Price` | Price per unit (falls back to `Total / Quantity` if omitted) |
+
+Each CSV row is treated as one line item, matching how most POS exports work
+(one row per item sold, not per order). `SKU`/`Item`/`Quantity`/`Unit Price`
+are all optional — a row without a SKU still imports fine for the main
+Dashboard totals, it just won't appear on the SKU-level breakdown.
 
 If your program's export uses different column names, POST to
 `/api/local-pos/import` with a `mapping` form field (JSON) instead of

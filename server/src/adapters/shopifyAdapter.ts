@@ -1,8 +1,15 @@
 import axios from "axios";
-import { ConnectionStatus, DateRange, SaleRecord, SalesAdapter } from "./types";
+import { ConnectionStatus, DateRange, SaleLineItem, SaleRecord, SalesAdapter } from "./types";
 import * as shopifyAuth from "../auth/shopifyAuth";
 
 const API_VERSION = "2024-10";
+
+interface ShopifyLineItem {
+  sku: string | null;
+  title: string;
+  quantity: number;
+  price: string;
+}
 
 interface ShopifyOrder {
   id: number;
@@ -11,7 +18,7 @@ interface ShopifyOrder {
   currency: string;
   current_total_price: string;
   current_total_discounts: string;
-  line_items: unknown[];
+  line_items: ShopifyLineItem[];
   customer?: { first_name?: string; last_name?: string };
   financial_status: string;
 }
@@ -66,6 +73,17 @@ export const shopifyAdapter: SalesAdapter = {
       const orders = response.data.orders as ShopifyOrder[];
       for (const order of orders) {
         const gross = Math.round(parseFloat(order.current_total_price) * 100);
+        const lineItems: SaleLineItem[] = (order.line_items ?? []).map((li) => {
+          const unitPriceAmount = Math.round(parseFloat(li.price) * 100);
+          return {
+            sku: li.sku || undefined,
+            title: li.title,
+            quantity: li.quantity,
+            unitPriceAmount,
+            lineTotalAmount: unitPriceAmount * li.quantity,
+          };
+        });
+
         results.push({
           id: `shopify-${order.id}`,
           platform: "shopify",
@@ -77,11 +95,12 @@ export const shopifyAdapter: SalesAdapter = {
           // Payments/Payouts API and are omitted here.
           fees: 0,
           netAmount: gross,
-          itemCount: order.line_items?.length ?? 0,
+          itemCount: lineItems.reduce((sum, li) => sum + li.quantity, 0),
           customerName: order.customer
             ? [order.customer.first_name, order.customer.last_name].filter(Boolean).join(" ")
             : undefined,
           channel: "Shopify",
+          lineItems,
           raw: order,
         });
       }

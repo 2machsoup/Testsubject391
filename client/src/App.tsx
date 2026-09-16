@@ -1,5 +1,6 @@
 import { BrowserRouter, NavLink, Route, Routes } from "react-router-dom";
 import { Dashboard } from "./pages/Dashboard";
+import { SkuPerformance } from "./pages/SkuPerformance";
 import { Settings } from "./pages/Settings";
 import "./App.css";
 
@@ -16,6 +17,9 @@ function App() {
           <NavLink to="/" end className={navLinkClass}>
             Dashboard
           </NavLink>
+          <NavLink to="/skus" className={navLinkClass}>
+            SKU Performance
+          </NavLink>
           <NavLink to="/settings" className={navLinkClass}>
             Connections
           </NavLink>
@@ -23,6 +27,7 @@ function App() {
         <main className="app-shell__main">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/skus" element={<SkuPerformance />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>
         </main>

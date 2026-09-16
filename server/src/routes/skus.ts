@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { getAggregatedSales } from "../services/aggregator";
+import { getSkuMetrics } from "../services/skuAggregator";
 import { parseDateRangeQuery } from "../utils/dateRange";
 
-export const salesRouter = Router();
+export const skusRouter = Router();
 
-salesRouter.get("/", async (req, res, next) => {
+skusRouter.get("/", async (req, res, next) => {
   try {
     const range = parseDateRangeQuery(req.query as Record<string, unknown>);
     if (!range) {
@@ -12,7 +12,7 @@ salesRouter.get("/", async (req, res, next) => {
       return;
     }
 
-    const data = await getAggregatedSales(range);
+    const data = await getSkuMetrics(range);
     res.json(data);
   } catch (err) {
     next(err);

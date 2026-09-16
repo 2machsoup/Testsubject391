@@ -1,4 +1,4 @@
-import type { AggregatedSales, ConnectionStatus } from "../types";
+import type { AggregatedSales, ConnectionStatus, SkuMetricsResponse } from "../types";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.DEV ? "http://localhost:4000" : undefined);
 
@@ -26,6 +26,11 @@ export function fetchConnections(): Promise<{ connections: ConnectionStatus[] }>
 export function fetchSales(start: Date, end: Date): Promise<AggregatedSales> {
   const params = new URLSearchParams({ start: start.toISOString(), end: end.toISOString() });
   return request(`/api/sales?${params.toString()}`);
+}
+
+export function fetchSkuMetrics(start: Date, end: Date): Promise<SkuMetricsResponse> {
+  const params = new URLSearchParams({ start: start.toISOString(), end: end.toISOString() });
+  return request(`/api/skus?${params.toString()}`);
 }
 
 export function disconnectPlatform(platform: "etsy" | "square" | "shopify"): Promise<{ ok: boolean }> {
