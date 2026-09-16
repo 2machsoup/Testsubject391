@@ -42,9 +42,13 @@ rather than being silently dropped. Backed by `GET /api/skus?start=&end=`
 - **Square**: create an app at https://developer.squareup.com/apps. Add
   `http://localhost:4000/api/auth/square/callback` as a redirect URL. Use
   the **sandbox** application credentials while developing.
-- **Shopify**: create a custom or public app via
-  https://partners.shopify.com (or your store's admin for a custom app).
-  Add `http://localhost:4000/api/auth/shopify/callback` as an allowed
+- **Shopify**: for a single store, the simplest path skips this section
+  entirely — see "Connecting Shopify" below, which uses a custom app's
+  Admin API access token instead of OAuth (no redirect URI or app review
+  needed). Only set up `SHOPIFY_API_KEY`/`SHOPIFY_API_SECRET` here if you
+  specifically want the OAuth path (e.g. a public app meant for other
+  merchants) — in that case, create the app via https://partners.shopify.com,
+  add `http://localhost:4000/api/auth/shopify/callback` as an allowed
   redirect URL, and request the `read_orders` (and optionally
   `read_products`) scopes.
 
@@ -73,7 +77,27 @@ npm run dev
 ```
 
 Open `http://localhost:5173`, go to **Connections**, and connect each
-platform. For Shopify, enter your `your-store.myshopify.com` domain first.
+platform.
+
+### Connecting Shopify
+
+For a single store, use the **access token** option (shown by default on the
+Shopify card) rather than OAuth:
+
+1. In your Shopify store admin: **Settings → Apps and sales channels →
+   Develop apps → Create an app**.
+2. Under **Configuration → Admin API integration**, grant it the
+   `read_orders` scope (and `read_products` if you want product titles to
+   resolve cleanly).
+3. Click **Install app**, then copy the **Admin API access token** shown
+   (starts with `shpat_`) — Shopify only shows it once.
+4. On the Connections page, enter your `your-store.myshopify.com` domain and
+   paste the token in, then **Connect**. The server verifies the token
+   against your store before saving it, so a bad paste fails immediately.
+
+The **"Use OAuth instead"** link is only relevant if you're building a
+public/partner app meant to be installed on other merchants' stores — that
+needs the `SHOPIFY_API_KEY`/`SHOPIFY_API_SECRET` setup from step 1 above.
 
 ### 4. Import local POS sales
 
