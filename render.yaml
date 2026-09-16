@@ -15,9 +15,9 @@ services:
       - key: PORT
         value: 4000
       - key: CLIENT_ORIGIN
-        value: https://sales-dashboard-client.onrender.com # update if Render assigns a different subdomain
+        value: https://sales-dashboard-client-0mht.onrender.com
       - key: SERVER_BASE_URL
-        value: https://sales-dashboard-api.onrender.com # update if Render assigns a different subdomain
+        value: https://sales-dashboard-api-nvi9.onrender.com
       - key: SESSION_SECRET
         sync: false
       - key: TOKEN_ENCRYPTION_KEY
@@ -27,7 +27,7 @@ services:
       - key: ETSY_SHARED_SECRET
         sync: false
       - key: ETSY_REDIRECT_URI
-        value: https://sales-dashboard-api.onrender.com/api/auth/etsy/callback
+        value: https://sales-dashboard-api-nvi9.onrender.com/api/auth/etsy/callback
       - key: SQUARE_APPLICATION_ID
         sync: false
       - key: SQUARE_APPLICATION_SECRET
@@ -35,7 +35,7 @@ services:
       - key: SQUARE_ENVIRONMENT
         value: production
       - key: SQUARE_REDIRECT_URI
-        value: https://sales-dashboard-api.onrender.com/api/auth/square/callback
+        value: https://sales-dashboard-api-nvi9.onrender.com/api/auth/square/callback
       - key: SHOPIFY_API_KEY
         sync: false
       - key: SHOPIFY_API_SECRET
@@ -43,7 +43,7 @@ services:
       - key: SHOPIFY_SCOPES
         value: read_orders,read_products
       - key: SHOPIFY_REDIRECT_URI
-        value: https://sales-dashboard-api.onrender.com/api/auth/shopify/callback
+        value: https://sales-dashboard-api-nvi9.onrender.com/api/auth/shopify/callback
 
   - type: web
     name: sales-dashboard-client
@@ -53,7 +53,7 @@ services:
     staticPublishPath: ./dist
     envVars:
       - key: VITE_API_BASE_URL
-        value: https://sales-dashboard-api.onrender.com # update if Render assigns a different subdomain
+        value: https://sales-dashboard-api-nvi9.onrender.com
     routes:
       - type: rewrite
         source: /*
