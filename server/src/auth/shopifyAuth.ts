@@ -63,6 +63,26 @@ export async function handleCallback(shop: string, code: string, state: string):
   });
 }
 
+/**
+ * For a custom app created directly in a store's admin (Settings > Apps and
+ * sales channels > Develop apps), Shopify hands you an Admin API access
+ * token straight away — no OAuth dance needed, since the app is already
+ * scoped to that one store. This verifies the token actually works before
+ * saving it, so a typo fails immediately instead of silently.
+ */
+export async function connectWithAccessToken(shop: string, accessToken: string): Promise<void> {
+  assertValidShopDomain(shop);
+
+  await axios.get(`https://${shop}/admin/api/2024-10/shop.json`, {
+    headers: { "X-Shopify-Access-Token": accessToken },
+  });
+
+  saveTokens("shopify", {
+    accessToken,
+    metadata: { shop },
+  });
+}
+
 /** Shopify's offline access tokens don't expire or refresh; they're valid until revoked. */
 export function getStoredCredentials(): { accessToken: string; shop: string } | null {
   const tokens = loadTokens("shopify");

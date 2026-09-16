@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   clearLocalPosData,
+  connectShopifyWithToken,
   disconnectPlatform,
   fetchConnections,
   importLocalPosCsv,
@@ -33,6 +34,10 @@ function useOAuthRedirectBanner() {
 export function Settings() {
   const [connections, setConnections] = useState<ConnectionStatus[]>([]);
   const [shopDomain, setShopDomain] = useState("");
+  const [shopifyToken, setShopifyToken] = useState("");
+  const [shopifyTokenError, setShopifyTokenError] = useState<string | null>(null);
+  const [shopifyConnecting, setShopifyConnecting] = useState(false);
+  const [showShopifyOAuth, setShowShopifyOAuth] = useState(false);
   const [csvSummary, setCsvSummary] = useState<string | null>(null);
   const [csvError, setCsvError] = useState<string | null>(null);
   const banner = useOAuthRedirectBanner();
@@ -69,6 +74,20 @@ export function Settings() {
     await clearLocalPosData();
     setCsvSummary(null);
     loadConnections();
+  }
+
+  async function handleShopifyTokenConnect() {
+    setShopifyTokenError(null);
+    setShopifyConnecting(true);
+    try {
+      await connectShopifyWithToken(shopDomain, shopifyToken);
+      setShopifyToken("");
+      loadConnections();
+    } catch (err) {
+      setShopifyTokenError(err instanceof Error ? err.message : "Failed to connect");
+    } finally {
+      setShopifyConnecting(false);
+    }
   }
 
   return (
@@ -132,21 +151,61 @@ export function Settings() {
               Disconnect
             </button>
           ) : (
-            <>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%" }}>
               <input
                 className="connection-card__input"
                 placeholder="your-store.myshopify.com"
                 value={shopDomain}
                 onChange={(e) => setShopDomain(e.target.value)}
               />
-              <button
-                className="connection-card__button connection-card__button--primary"
-                disabled={!shopDomain}
-                onClick={() => startShopifyOAuth(shopDomain)}
-              >
-                Connect
-              </button>
-            </>
+              {!showShopifyOAuth ? (
+                <>
+                  <input
+                    className="connection-card__input"
+                    placeholder="Admin API access token (shpat_...)"
+                    type="password"
+                    value={shopifyToken}
+                    onChange={(e) => setShopifyToken(e.target.value)}
+                  />
+                  <button
+                    className="connection-card__button connection-card__button--primary"
+                    disabled={!shopDomain || !shopifyToken || shopifyConnecting}
+                    onClick={handleShopifyTokenConnect}
+                  >
+                    {shopifyConnecting ? "Connecting…" : "Connect"}
+                  </button>
+                  {shopifyTokenError && (
+                    <p className="settings__banner settings__banner--error" style={{ margin: 0 }}>
+                      {shopifyTokenError}
+                    </p>
+                  )}
+                  <button
+                    className="connection-card__button"
+                    style={{ fontSize: 12 }}
+                    onClick={() => setShowShopifyOAuth(true)}
+                  >
+                    Use OAuth instead (public/partner app)
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    className="connection-card__button connection-card__button--primary"
+                    disabled={!shopDomain}
+                    onClick={() => startShopifyOAuth(shopDomain)}
+                  >
+                    Connect via OAuth
+                  </button>
+                  <button
+                    className="connection-card__button"
+                    style={{ fontSize: 12 }}
+                    onClick={() => setShowShopifyOAuth(false)}
+                  >
+                    Use access token instead
+                  </button>
+                </>
+              )}
+            </div>
           )}
         </ConnectionCard>
 
@@ -181,9 +240,16 @@ export function Settings() {
 
       <p className="settings__csv-summary">
         The Local POS CSV importer expects columns named Date, Order, Total, Fees, Items, Customer, and
-        Currency by default. If your export uses different headers, the column mapping can be adjusted
-        via the <code>/api/local-pos/import</code> endpoint's <code>mapping</code> field — see the
-        server README.
+        Currency by default (plus optional SKU, Item, Quantity, and Unit Price columns for SKU-level
+        metrics). If your export uses different headers, the column mapping can be adjusted via the{" "}
+        <code>/api/local-pos/import</code> endpoint's <code>mapping</code> field — see the server README.
+      </p>
+
+      <p className="settings__csv-summary">
+        For Shopify, the access token option above works with a <strong>custom app</strong>: in your store
+        admin, go to Settings → Apps and sales channels → Develop apps → Create an app, grant it{" "}
+        <code>read_orders</code> (and <code>read_products</code>) scopes under Admin API scopes, install
+        it, then copy the Admin API access token shown there. No redirect URI or app review needed.
       </p>
     </div>
   );

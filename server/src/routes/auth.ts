@@ -3,6 +3,7 @@ import { config } from "../config";
 import * as etsyAuth from "../auth/etsyAuth";
 import * as squareAuth from "../auth/squareAuth";
 import * as shopifyAuth from "../auth/shopifyAuth";
+import { describeError } from "../utils/errors";
 
 export const authRouter = Router();
 
@@ -80,4 +81,20 @@ authRouter.get("/shopify/callback", async (req, res) => {
 authRouter.post("/shopify/disconnect", (_req, res) => {
   shopifyAuth.disconnect();
   res.json({ ok: true });
+});
+
+// For a custom app created directly in the store's admin — no OAuth needed,
+// just an Admin API access token to verify and store.
+authRouter.post("/shopify/connect-token", async (req, res) => {
+  try {
+    const { shop, accessToken } = req.body as { shop?: string; accessToken?: string };
+    if (!shop || !accessToken) {
+      res.status(400).json({ error: "shop and accessToken are both required" });
+      return;
+    }
+    await shopifyAuth.connectWithAccessToken(shop, accessToken);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(400).json({ error: describeError(err) });
+  }
 });

@@ -1,22 +1,7 @@
-import axios from "axios";
 import { adapterList } from "../adapters";
 import { DateRange, SaleRecord } from "../adapters/types";
 import { PlatformId } from "../config";
-
-function describeError(err: unknown): string {
-  if (axios.isAxiosError(err)) {
-    const data = err.response?.data;
-    const detail =
-      typeof data === "string"
-        ? data
-        : (data as { error_description?: string; error?: string; message?: string } | undefined)
-            ?.error_description ??
-          (data as { error?: string } | undefined)?.error ??
-          (data as { message?: string } | undefined)?.message;
-    return detail ? `${err.message} — ${detail}` : err.message;
-  }
-  return err instanceof Error ? err.message : "Unknown error fetching sales";
-}
+import { describeError } from "../utils/errors";
 
 export interface PlatformSummary {
   platform: PlatformId;

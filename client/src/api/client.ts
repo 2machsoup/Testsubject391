@@ -45,6 +45,14 @@ export function startShopifyOAuth(shop: string): void {
   window.location.href = `${API_BASE_URL}/api/auth/shopify/start?shop=${encodeURIComponent(shop)}`;
 }
 
+export function connectShopifyWithToken(shop: string, accessToken: string): Promise<{ ok: boolean }> {
+  return request("/api/auth/shopify/connect-token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ shop, accessToken }),
+  });
+}
+
 export async function importLocalPosCsv(file: File): Promise<{ imported: number; skipped: number }> {
   const formData = new FormData();
   formData.append("file", file);
