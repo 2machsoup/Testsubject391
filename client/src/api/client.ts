@@ -1,6 +1,14 @@
 import type { AggregatedSales, ConnectionStatus } from "../types";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.DEV ? "http://localhost:4000" : undefined);
+
+if (!API_BASE_URL) {
+  throw new Error(
+    "VITE_API_BASE_URL was not set at build time, so this production build has no backend " +
+      "to talk to. Set it in your host's build-time environment variables and rebuild " +
+      "(Vite env vars are baked in at build time, not read at runtime)."
+  );
+}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, init);
