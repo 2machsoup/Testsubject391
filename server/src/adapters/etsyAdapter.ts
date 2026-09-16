@@ -29,10 +29,16 @@ function moneyToMinorUnits(money: EtsyMoney): number {
   return Math.round((money.amount / money.divisor) * 100);
 }
 
+// Etsy's x-api-key must be "<keystring>:<shared_secret>", not the keystring
+// alone: https://developer.etsy.com/documentation/essentials/authentication/
+function apiKeyHeader(): string {
+  return `${config.etsy.keystring}:${config.etsy.sharedSecret}`;
+}
+
 async function getShopId(accessToken: string, userId: string): Promise<number> {
   const { data } = await axios.get(`${API_BASE}/users/${userId}/shops`, {
     headers: {
-      "x-api-key": config.etsy.keystring,
+      "x-api-key": apiKeyHeader(),
       Authorization: `Bearer ${accessToken}`,
     },
   });
@@ -75,7 +81,7 @@ export const etsyAdapter: SalesAdapter = {
     while (true) {
       const { data } = await axios.get(`${API_BASE}/shops/${shopId}/receipts`, {
         headers: {
-          "x-api-key": config.etsy.keystring,
+          "x-api-key": apiKeyHeader(),
           Authorization: `Bearer ${token.accessToken}`,
         },
         params: {
