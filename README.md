@@ -107,3 +107,39 @@ write a new adapter implementing the same interface and swap it into
   production, and keep `server/.env` out of version control.
 - The included SQLite database is fine for a single-instance deployment;
   move to Postgres/MySQL if you need multiple server instances.
+- `server/Dockerfile` and `client/Dockerfile` are provided for any
+  Docker-based host; `docker compose up --build` from the repo root runs
+  both locally.
+
+### Deploying to Render
+
+`render.yaml` at the repo root is a [Render Blueprint](https://render.com/docs/blueprint-spec)
+that provisions both services in one go:
+
+- `sales-dashboard-api` — a Docker web service built from `server/Dockerfile`,
+  with a 1GB persistent disk mounted at `/app/data` for the SQLite database
+  (this requires the **Starter** plan or above; the free plan doesn't support
+  disks).
+- `sales-dashboard-client` — a static site built from `client/`, with an SPA
+  rewrite rule so client-side routing works.
+
+To use it:
+
+1. In the Render dashboard, **New > Blueprint**, point it at this repo/branch.
+   Render will read `render.yaml` and create both services.
+2. Render assigns each service a URL like `https://sales-dashboard-api.onrender.com`.
+   The blueprint assumes those exact names; if Render appends a suffix because
+   the name is taken, update the `CLIENT_ORIGIN`, `SERVER_BASE_URL`,
+   `*_REDIRECT_URI`, and `VITE_API_BASE_URL` values in `render.yaml` (or in the
+   dashboard) to match, then redeploy.
+3. The blueprint marks secrets (`SESSION_SECRET`, `TOKEN_ENCRYPTION_KEY`,
+   `ETSY_KEYSTRING`, `ETSY_SHARED_SECRET`, `SQUARE_APPLICATION_ID`,
+   `SQUARE_APPLICATION_SECRET`, `SHOPIFY_API_KEY`, `SHOPIFY_API_SECRET`) as
+   `sync: false` so they aren't committed to git — Render will prompt you to
+   fill them in when you apply the blueprint. Generate `TOKEN_ENCRYPTION_KEY`
+   with:
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+   ```
+4. Update each of Etsy/Square/Shopify's developer app settings with the
+   `*_REDIRECT_URI` values above (Render's URLs, not localhost).
