@@ -5,12 +5,12 @@ services:
     rootDir: server
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    plan: starter # persistent disks require Starter or above, not the free plan
+    plan: free
     healthCheckPath: /api/health
-    disk:
-      name: sales-data
-      mountPath: /app/data
-      sizeGB: 1
+    # No persistent disk on the free plan: the SQLite database (connected
+    # accounts, imported CSV data) is wiped every time this service restarts
+    # or spins down from being idle. Add a `disk:` block back (and bump
+    # `plan` to at least `starter`) once you need data to actually persist.
     envVars:
       - key: PORT
         value: 4000

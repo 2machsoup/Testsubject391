@@ -117,11 +117,19 @@ write a new adapter implementing the same interface and swap it into
 that provisions both services in one go:
 
 - `sales-dashboard-api` — a Docker web service built from `server/Dockerfile`,
-  with a 1GB persistent disk mounted at `/app/data` for the SQLite database
-  (this requires the **Starter** plan or above; the free plan doesn't support
-  disks).
+  on the **free** plan.
 - `sales-dashboard-client` — a static site built from `client/`, with an SPA
   rewrite rule so client-side routing works.
+
+**Free plan tradeoff:** the free plan doesn't support persistent disks, so the
+SQLite database (connected accounts, imported CSV data) lives on the
+container's local filesystem and is wiped every time the service restarts —
+including every time it spins down from 15 minutes of inactivity, which the
+free plan does automatically. You'll need to reconnect accounts / re-import
+CSVs after that happens. This is fine for testing the deploy; once you want
+data to actually persist, add a `disk:` block back under the `sales-dashboard-api`
+service in `render.yaml` and bump its `plan` to `starter` or above (disks
+require a paid plan).
 
 To use it:
 
